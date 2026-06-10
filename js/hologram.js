@@ -223,22 +223,7 @@ function createGimbalRings() {
  * Creates the glowing projection light beam cylinder.
  */
 function createProjectorBeam() {
-  // Transparent open-ended cone
-  const coneGeo = new THREE.CylinderGeometry(0.2, 2.1, 3.2, 32, 1, true);
-  
-  // Custom material mimicking a volumetric scan beam
-  const coneMat = new THREE.MeshBasicMaterial({
-    color: 0x00E5FF,
-    transparent: true,
-    opacity: 0.08,
-    side: THREE.DoubleSide,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  });
-
-  lightCone = new THREE.Mesh(coneGeo, coneMat);
-  lightCone.position.y = 1.6;
-  hologramGroup.add(lightCone);
+  // Removed per user request: "REMOVE PYRAMID ALSO"
 }
 
 function getBikeTargetScale() {
