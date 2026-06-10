@@ -2017,18 +2017,45 @@ button:focus-visible,
   }
 
   .model-cards-container {
+    display: flex;
     flex-direction: row;
-    overflow-x: auto;
+    gap: 8px;
+    padding: 0 16px;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+    overflow: hidden;
+    width: 100%;
   }
 
   .model-card {
-    min-width: 110px;
-    padding: 6px 10px;
-    gap: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6px 4px;
+    gap: 4px;
+    flex-shrink: 0;
+    width: calc((100% - 16px) / 3);
+    min-width: unset;
+    box-sizing: border-box;
   }
 
-  .card-thumb { width: 42px; height: 30px; }
-  .card-name { font-size: 9px; }
+  .card-thumb {
+    width: 44px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+
+  .card-name {
+    font-size: 8px;
+    text-align: center;
+    width: 100%;
+    white-space: nowrap;
+  }
 
   /* Compact telemetry */
   .config-col-right {

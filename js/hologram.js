@@ -231,6 +231,15 @@ function createProjectorBeam() {
 }
 
 /**
+ * Gets the target scale for the bike model mesh.
+ * Returns 0.7 on mobile (Android) screens, and 1.0 on desktop/tablets.
+ */
+function getBikeTargetScale() {
+  const width = container ? container.clientWidth : window.innerWidth;
+  return (width < 480) ? 0.7 : 1.0;
+}
+
+/**
  * Creates the motorbike floating display mesh.
  */
 function createBikeMesh(texture) {
@@ -254,9 +263,10 @@ function createBikeMesh(texture) {
   hologramGroup.add(bikeMesh);
   
   // Initial animation entry
+  const targetScale = getBikeTargetScale();
   bikeMesh.scale.set(0.1, 0.1, 0.1);
   new TWEEN.Tween(bikeMesh.scale)
-    .to({ x: 1, y: 1, z: 1 }, 800)
+    .to({ x: targetScale, y: targetScale, z: targetScale }, 800)
     .easing(TWEEN.Easing.Back.Out)
     .start();
 }
@@ -372,8 +382,9 @@ function switchHologramModel(modelName) {
         bikeMesh.material.needsUpdate = true;
         
         // Scale back up with spring elastic motion
+        const targetScale = getBikeTargetScale();
         new TWEEN.Tween(bikeMesh.scale)
-          .to({ x: 1, y: 1, z: 1 }, 700)
+          .to({ x: targetScale, y: targetScale, z: targetScale }, 700)
           .easing(TWEEN.Easing.Back.Out)
           .start();
       })
@@ -874,6 +885,11 @@ function onWindowResize() {
   
   renderer.setSize(container.clientWidth, container.clientHeight);
   updateCameraDistance();
+  
+  if (bikeMesh) {
+    const targetScale = getBikeTargetScale();
+    bikeMesh.scale.set(targetScale, targetScale, targetScale);
+  }
 }
 
 // Start simulation on load
