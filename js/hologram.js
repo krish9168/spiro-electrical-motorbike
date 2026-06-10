@@ -60,7 +60,7 @@ function initHologram() {
     0.1, 
     100
   );
-  camera.position.set(0, 2.5, 7.5);
+  camera.position.set(0, 2.5, 11);
 
   // 3. Setup WebGL Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -76,8 +76,10 @@ function initHologram() {
   controls.target.set(0, 1.5, 0); // Aim at bike center
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
-  controls.minDistance = 5;   // Max zoom-in — keeps full bike visible
-  controls.maxDistance = 12;  // Max zoom-out
+  controls.minDistance = 11;  // Lock to maximum zoom-out
+  controls.maxDistance = 11;  // Lock to maximum zoom-out
+  controls.enableRotate = false; // Disable manual rotation dragging
+  controls.enableZoom = false; // Disable scroll-wheel zooming
   // Limit rotation angle so user doesn't look under the base
   controls.maxPolarAngle = Math.PI / 2 - 0.05;
   controls.minPolarAngle = 0.3; // Prevent looking straight down
@@ -545,7 +547,7 @@ function zoomConfig(zoomIn) {
   
   let newHorizDist = zoomIn ? currentHorizDist - zoomStep : currentHorizDist + zoomStep;
   // Clamp: min 4 (so bike stays fully visible), max 11
-  newHorizDist = Math.max(4, Math.min(11, newHorizDist));
+  newHorizDist = Math.max(11, Math.min(11, newHorizDist));
   
   // Scale only X and Z, keep Y fixed at camera's current height
   const scale = newHorizDist / currentHorizDist;
@@ -567,7 +569,7 @@ function resetConfigRotation() {
   if (!camera || !controls || !bikeMesh) return;
   
   new TWEEN.Tween(camera.position)
-    .to({ x: 0, y: 2.5, z: 7.5 }, 600)
+    .to({ x: 0, y: 2.5, z: 11 }, 600)
     .easing(TWEEN.Easing.Cubic.Out)
     .start();
     
