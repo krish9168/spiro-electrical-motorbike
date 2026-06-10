@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <url>
+    <loc>https://spiroelectricmotorbikes.co.ke/</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://spiroelectricmotorbikes.co.ke/images/m1_spiro.jpg</image:loc>
+      <image:title>Spiro M1 Electric Motorbike</image:title>
+      <image:caption>Spiro M1 smart commuter electric motorbike with battery swapping</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://spiroelectricmotorbikes.co.ke/images/m2_spiro.jpg</image:loc>
+      <image:title>Spiro M2 Electric Motorbike</image:title>
+      <image:caption>Spiro M2 commercial power electric motorbike for boda boda riders</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://spiroelectricmotorbikes.co.ke/images/m3_spiro.jpg</image:loc>
+      <image:title>Spiro M3 Ekon Electric Motorbike</image:title>
+      <image:caption>Spiro M3 Ekon premium electric motorbike with daily financing</image:caption>
+    </image:image>
+  </url>
+
+</urlset>

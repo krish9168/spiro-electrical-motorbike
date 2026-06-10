@@ -1,0 +1,12 @@
+# Spiro Electric Motorbikes - robots.txt
+User-agent: *
+Allow: /
+Disallow: /design-system/
+Disallow: /.vscode/
+Disallow: /.gemini/
+
+# Sitemap
+Sitemap: https://spiroelectricmotorbikes.co.ke/sitemap.xml
+
+# Crawl-delay (optional, for politeness)
+Crawl-delay: 1

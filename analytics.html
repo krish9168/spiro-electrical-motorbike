@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#050811">
+  <title>Analytics Dashboard | SPIRO Electric Motorbikes</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #050811;
+      --card: rgba(12, 18, 34, 0.85);
+      --border: rgba(0, 82, 255, 0.15);
+      --accent: #00E5FF;
+      --blue: #0052FF;
+      --green: #25D366;
+      --red: #FF3C5F;
+      --amber: #FFB800;
+      --cream: #F1F5F9;
+      --muted: #94A3B8;
+      --font-display: 'Orbitron', monospace;
+      --font-body: 'Inter', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--cream);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Top Bar ── */
+    .dash-topbar {
+      background: rgba(5, 8, 17, 0.95);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .dash-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dash-brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--blue), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .dash-brand-name {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+
+    .dash-brand-sub {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    .dash-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dash-btn {
+      background: rgba(0, 82, 255, 0.12);
+      border: 1px solid rgba(0, 82, 255, 0.3);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--font-body);
+    }
+
+    .dash-btn:hover {
+      background: rgba(0, 82, 255, 0.25);
+      border-color: var(--accent);
+    }
+
+    .dash-btn.danger {
+      background: rgba(255, 60, 95, 0.1);
+      border-color: rgba(255, 60, 95, 0.3);
+      color: var(--red);
+    }
+
+    .dash-btn.danger:hover {
+      background: rgba(255, 60, 95, 0.25);
+    }
+
+    /* ── Main Container ── */
+    .dash-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 60px;
+    }
+
+    /* ── Period Tabs ── */
+    .period-tabs {
+      display: flex;
+      gap: 4px;
+      background: rgba(12, 18, 34, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 24px;
+      width: fit-content;
+    }
+
+    .period-tab {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--font-body);
+    }
+
+    .period-tab.active {
+      background: linear-gradient(135deg, var(--blue), rgba(0, 229, 255, 0.3));
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(0, 82, 255, 0.3);
+    }
+
+    .period-tab:hover:not(.active) {
+      color: var(--cream);
+      background: rgba(0, 82, 255, 0.08);
+    }
+
+    /* ── KPI Cards Row ── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .kpi-card:nth-child(1)::before { background: linear-gradient(90deg, var(--blue), var(--accent)); }
+    .kpi-card:nth-child(2)::before { background: linear-gradient(90deg, var(--green), #4ADE80); }
+    .kpi-card:nth-child(3)::before { background: linear-gradient(90deg, var(--amber), #FCD34D); }
+    .kpi-card:nth-child(4)::before { background: linear-gradient(90deg, var(--red), #FF8B9A); }
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(90deg, #fff, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+    }
+
+    .kpi-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 8px;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .kpi-change.up {
+      color: #4ADE80;
+      background: rgba(74, 222, 128, 0.1);
+    }
+
+    .kpi-change.down {
+      color: var(--red);
+      background: rgba(255, 60, 95, 0.1);
+    }
+
+    /* ── Chart Panels ── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+
+    .chart-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+    }
+
+    .chart-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--cream);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-title .icon {
+      font-size: 16px;
+    }
+
+    /* ── Bar Chart ── */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 180px;
+      padding-top: 10px;
+    }
+
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .bar {
+      width: 100%;
+      max-width: 40px;
+      border-radius: 6px 6px 2px 2px;
+      background: linear-gradient(180deg, var(--accent), var(--blue));
+      transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      min-height: 4px;
+      cursor: pointer;
+    }
+
+    .bar:hover {
+      filter: brightness(1.3);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+    }
+
+    .bar-tooltip {
+      display: none;
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(5, 8, 17, 0.95);
+      border: 1px solid var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+    .bar:hover .bar-tooltip { display: block; }
+
+    .bar-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* ── Donut Chart ── */
+    .donut-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .donut-svg {
+      width: 140px;
+      height: 140px;
+      transform: rotate(-90deg);
+    }
+
+    .donut-ring {
+      fill: none;
+      stroke-width: 18;
+      transition: stroke-dasharray 0.8s ease;
+    }
+
+    .donut-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .legend-val {
+      font-weight: 700;
+      color: var(--cream);
+      margin-left: auto;
+      padding-left: 12px;
+    }
+
+    /* ── Activity Table ── */
+    .activity-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .activity-table th {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .activity-table td {
+      font-size: 13px;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(0, 82, 255, 0.06);
+      color: rgba(241, 245, 249, 0.85);
+    }
+
+    .activity-table tr:hover td {
+      background: rgba(0, 82, 255, 0.04);
+    }
+
+    .event-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .event-badge.pageview {
+      background: rgba(0, 229, 255, 0.1);
+      color: var(--accent);
+    }
+
+    .event-badge.whatsapp {
+      background: rgba(37, 211, 102, 0.1);
+      color: var(--green);
+    }
+
+    /* ── Hourly Heatmap ── */
+    .heatmap-row {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .heat-cell {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      transition: all 0.2s;
+      cursor: default;
+      position: relative;
+    }
+
+    .heat-cell:hover {
+      transform: scale(1.15);
+      z-index: 2;
+    }
+
+    /* ── Empty State ── */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+    }
+
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; display: block; }
+    .empty-state .title { font-size: 18px; font-weight: 700; color: var(--cream); margin-bottom: 8px; }
+    .empty-state .desc { font-size: 14px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .kpi-row { grid-template-columns: 1fr 1fr; }
+      .kpi-value { font-size: 24px; }
+      .dash-topbar { padding: 12px 16px; }
+      .dash-container { padding: 16px 12px 40px; }
+      .heat-cell { width: 28px; height: 28px; font-size: 9px; }
+    }
+
+    /* ── Live Pulse ── */
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ADE80;
+      display: inline-block;
+      margin-right: 6px;
+      animation: pulse-live 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-live {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5); }
+      50% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+    }
+
+    .back-link {
+      color: var(--muted);
+      font-size: 12px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <div class="dash-topbar">
+    <div class="dash-brand">
+      <div class="dash-brand-icon">📊</div>
+      <div>
+        <div class="dash-brand-name">SPIRO</div>
+        <div class="dash-brand-sub">ANALYTICS DASHBOARD</div>
+      </div>
+    </div>
+    <div class="dash-actions">
+      <a href="index.html" class="dash-btn back-link" style="text-decoration:none;">← Back to Site</a>
+      <button class="dash-btn" onclick="refreshDashboard()">↻ Refresh</button>
+      <button class="dash-btn danger" onclick="if(confirm('Clear all analytics data?')){SpiroAnalytics.clearData();refreshDashboard();}">Clear Data</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="dash-container">
+
+    <!-- Period Tabs -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+      <div class="period-tabs" id="period-tabs">
+        <button class="period-tab active" data-period="today" onclick="setPeriod('today')">Today</button>
+        <button class="period-tab" data-period="week" onclick="setPeriod('week')">This Week</button>
+        <button class="period-tab" data-period="month" onclick="setPeriod('month')">This Month</button>
+        <button class="period-tab" data-period="all" onclick="setPeriod('all')">All Time</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);">
+        <span class="live-dot"></span>Live Tracking Active
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-row" id="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Visits</div>
+        <div class="kpi-value" id="kpi-visits">0</div>
+        <div class="kpi-change up" id="kpi-visits-change">↑ 0%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Page Views</div>
+        <div class="kpi-value" id="kpi-pageviews">0</div>
+        <div class="kpi-change up" id="kpi-pv-change">↑ 0%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Avg. Pages/Visit</div>
+        <div class="kpi-value" id="kpi-avg">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">WhatsApp Clicks</div>
+        <div class="kpi-value" id="kpi-wa">0</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <!-- Bar Chart: Daily Visits -->
+      <div class="chart-panel">
+        <div class="chart-title"><span class="icon">📈</span> <span id="chart-bar-title">Daily Visits</span></div>
+        <div class="bar-chart" id="bar-chart"></div>
+      </div>
+
+      <!-- Donut: Devices -->
+      <div class="chart-panel">
+        <div class="chart-title"><span class="icon">📱</span> Device Breakdown</div>
+        <div class="donut-container" id="donut-chart">
+          <svg class="donut-svg" viewBox="0 0 100 100">
+            <circle class="donut-ring" id="donut-mobile" cx="50" cy="50" r="35" stroke="#0052FF" stroke-dasharray="0 220"/>
+            <circle class="donut-ring" id="donut-tablet" cx="50" cy="50" r="35" stroke="#00E5FF" stroke-dasharray="0 220"/>
+            <circle class="donut-ring" id="donut-desktop" cx="50" cy="50" r="35" stroke="#FFB800" stroke-dasharray="0 220"/>
+          </svg>
+          <div class="donut-legend" id="donut-legend"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Second Row: Hourly + Top Pages -->
+    <div class="charts-grid">
+      <div class="chart-panel">
+        <div class="chart-title"><span class="icon">🕐</span> Hourly Activity Heatmap</div>
+        <div class="heatmap-row" id="heatmap"></div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="chart-title"><span class="icon">🔗</span> Top Referrers</div>
+        <div id="referrers-list"></div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="chart-panel" style="margin-top:16px;">
+      <div class="chart-title"><span class="icon">📋</span> Recent Activity</div>
+      <div style="overflow-x:auto;">
+        <table class="activity-table" id="activity-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Event</th>
+              <th>Page</th>
+              <th>Device</th>
+            </tr>
+          </thead>
+          <tbody id="activity-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Analytics Tracker (shared with main site) -->
+  <script src="js/analytics.js"></script>
+
+  <script>
+    let currentPeriod = 'today';
+
+    function setPeriod(period) {
+      currentPeriod = period;
+      document.querySelectorAll('.period-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.period === period);
+      });
+      refreshDashboard();
+    }
+
+    function refreshDashboard() {
+      const data = SpiroAnalytics.getData();
+      const today = SpiroAnalytics.today();
+      const weekKey = SpiroAnalytics.getWeekKey(today);
+      const monthKey = SpiroAnalytics.getMonthKey(today);
+
+      // ── KPI Values ──
+      let visits = 0, pageViews = 0;
+
+      if (currentPeriod === 'today') {
+        const d = data.daily[today] || { visits: 0, pageViews: 0 };
+        visits = d.visits;
+        pageViews = d.pageViews;
+      } else if (currentPeriod === 'week') {
+        const w = data.weekly[weekKey] || { visits: 0, pageViews: 0 };
+        visits = w.visits;
+        pageViews = w.pageViews;
+      } else if (currentPeriod === 'month') {
+        const m = data.monthly[monthKey] || { visits: 0, pageViews: 0 };
+        visits = m.visits;
+        pageViews = m.pageViews;
+      } else {
+        visits = data.totalVisits;
+        pageViews = data.totalPageViews;
+      }
+
+      const avg = visits > 0 ? (pageViews / visits).toFixed(1) : '0';
+      const waClicks = data.events.filter(e => e.type === 'whatsapp_click').length;
+
+      document.getElementById('kpi-visits').textContent = visits.toLocaleString();
+      document.getElementById('kpi-pageviews').textContent = pageViews.toLocaleString();
+      document.getElementById('kpi-avg').textContent = avg;
+      document.getElementById('kpi-wa').textContent = waClicks;
+
+      // ── Bar Chart ──
+      renderBarChart(data);
+
+      // ── Donut ──
+      renderDonut(data);
+
+      // ── Heatmap ──
+      renderHeatmap(data);
+
+      // ── Referrers ──
+      renderReferrers(data);
+
+      // ── Activity Table ──
+      renderActivity(data);
+    }
+
+    function renderBarChart(data) {
+      const container = document.getElementById('bar-chart');
+      const titleEl = document.getElementById('chart-bar-title');
+      let entries = [];
+
+      if (currentPeriod === 'today' || currentPeriod === 'week') {
+        // Show last 7 days
+        titleEl.textContent = 'Daily Visits (Last 7 Days)';
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const key = d.toISOString().slice(0, 10);
+          const dayName = d.toLocaleDateString('en', { weekday: 'short' });
+          entries.push({
+            label: dayName,
+            value: (data.daily[key] || {}).visits || 0,
+            key: key
+          });
+        }
+      } else if (currentPeriod === 'month') {
+        // Show last 4 weeks
+        titleEl.textContent = 'Weekly Visits (Last 4 Weeks)';
+        for (let i = 3; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - (i * 7));
+          const wk = SpiroAnalytics.getWeekKey(d.toISOString().slice(0, 10));
+          entries.push({
+            label: wk.replace(/^\d{4}-/, ''),
+            value: (data.weekly[wk] || {}).visits || 0,
+            key: wk
+          });
+        }
+      } else {
+        // Show last 6 months
+        titleEl.textContent = 'Monthly Visits (Last 6 Months)';
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date();
+          d.setMonth(d.getMonth() - i);
+          const mk = d.toISOString().slice(0, 7);
+          const monthName = d.toLocaleDateString('en', { month: 'short' });
+          entries.push({
+            label: monthName,
+            value: (data.monthly[mk] || {}).visits || 0,
+            key: mk
+          });
+        }
+      }
+
+      const maxVal = Math.max(...entries.map(e => e.value), 1);
+
+      container.innerHTML = entries.map(e => {
+        const h = Math.max((e.value / maxVal) * 160, 4);
+        return `<div class="bar-col">
+          <div class="bar" style="height:${h}px">
+            <div class="bar-tooltip">${e.value} visits</div>
+          </div>
+          <div class="bar-label">${e.label}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderDonut(data) {
+      const { mobile, tablet, desktop } = data.devices;
+      const total = mobile + tablet + desktop || 1;
+      const circ = 2 * Math.PI * 35; // ≈ 219.9
+
+      const mPct = mobile / total;
+      const tPct = tablet / total;
+      const dPct = desktop / total;
+
+      let offset = 0;
+
+      const mRing = document.getElementById('donut-mobile');
+      mRing.setAttribute('stroke-dasharray', `${mPct * circ} ${circ}`);
+      mRing.setAttribute('stroke-dashoffset', `-${offset}`);
+      offset += mPct * circ;
+
+      const tRing = document.getElementById('donut-tablet');
+      tRing.setAttribute('stroke-dasharray', `${tPct * circ} ${circ}`);
+      tRing.setAttribute('stroke-dashoffset', `-${offset}`);
+      offset += tPct * circ;
+
+      const dRing = document.getElementById('donut-desktop');
+      dRing.setAttribute('stroke-dasharray', `${dPct * circ} ${circ}`);
+      dRing.setAttribute('stroke-dashoffset', `-${offset}`);
+
+      document.getElementById('donut-legend').innerHTML = `
+        <div class="legend-item"><span class="legend-dot" style="background:#0052FF"></span>Mobile<span class="legend-val">${mobile}</span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#00E5FF"></span>Tablet<span class="legend-val">${tablet}</span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#FFB800"></span>Desktop<span class="legend-val">${desktop}</span></div>
+      `;
+    }
+
+    function renderHeatmap(data) {
+      const container = document.getElementById('heatmap');
+      const hourly = data.hourly || {};
+      const maxH = Math.max(...Object.values(hourly), 1);
+
+      let html = '';
+      for (let h = 0; h < 24; h++) {
+        const val = hourly[String(h)] || 0;
+        const intensity = val / maxH;
+        const bg = intensity === 0
+          ? 'rgba(0, 82, 255, 0.06)'
+          : `rgba(0, 229, 255, ${0.1 + intensity * 0.7})`;
+        const label = h === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h - 12}p`;
+
+        html += `<div class="heat-cell" style="background:${bg}" title="${val} views at ${label}m">
+          ${label}
+        </div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function renderReferrers(data) {
+      const container = document.getElementById('referrers-list');
+      const refs = Object.entries(data.referrers || {}).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+      if (refs.length === 0) {
+        container.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px 0;">No referrer data yet.</div>';
+        return;
+      }
+
+      const maxRef = refs[0][1];
+      container.innerHTML = refs.map(([name, count]) => {
+        const pct = (count / maxRef) * 100;
+        return `<div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+            <span style="color:var(--cream)">${name}</span>
+            <span style="color:var(--accent);font-weight:700;">${count}</span>
+          </div>
+          <div style="height:6px;background:rgba(0,82,255,0.1);border-radius:3px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--blue),var(--accent));border-radius:3px;transition:width 0.6s;"></div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderActivity(data) {
+      const tbody = document.getElementById('activity-body');
+      const events = (data.events || []).slice(0, 20);
+
+      if (events.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--muted);">No activity recorded yet. Visit the main site to start tracking.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = events.map(e => {
+        const time = new Date(e.timestamp);
+        const timeStr = time.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+        const dateStr = time.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+        const badge = e.type === 'whatsapp_click'
+          ? '<span class="event-badge whatsapp">WHATSAPP</span>'
+          : '<span class="event-badge pageview">PAGEVIEW</span>';
+        const device = e.device || '—';
+        const page = e.page || e.details?.model || '—';
+
+        return `<tr>
+          <td>${dateStr}, ${timeStr}</td>
+          <td>${badge}</td>
+          <td>${page}</td>
+          <td>${device}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Init
+    refreshDashboard();
+
+    // Auto-refresh every 30s
+    setInterval(refreshDashboard, 30000);
+  </script>
+
+</body>
+</html>
