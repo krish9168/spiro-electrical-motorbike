@@ -76,10 +76,11 @@ function initHologram() {
   controls.target.set(0, 1.5, 0); // Aim at bike center
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
-  controls.minDistance = 11;  // Lock to maximum zoom-out
-  controls.maxDistance = 11;  // Lock to maximum zoom-out
   controls.enableRotate = false; // Disable manual rotation dragging
   controls.enableZoom = false; // Disable scroll-wheel zooming
+  
+  // Set initial responsive camera distance
+  updateCameraDistance();
   // Limit rotation angle so user doesn't look under the base
   controls.maxPolarAngle = Math.PI / 2 - 0.05;
   controls.minPolarAngle = 0.3; // Prevent looking straight down
@@ -568,8 +569,13 @@ function zoomConfig(zoomIn) {
 function resetConfigRotation() {
   if (!camera || !controls || !bikeMesh) return;
   
+  const width = container.clientWidth;
+  let dist = 8.5;
+  if (width < 480) dist = 5.8;
+  else if (width < 768) dist = 7.0;
+
   new TWEEN.Tween(camera.position)
-    .to({ x: 0, y: 2.5, z: 11 }, 600)
+    .to({ x: 0, y: 2.5, z: dist }, 600)
     .easing(TWEEN.Easing.Cubic.Out)
     .start();
     
@@ -772,9 +778,10 @@ function animate(time) {
     controls.update();
   }
 
-  // Auto-Spin rotation logic
+  // Auto-Spin rotation logic — oscillates to keep the bike visible in the middle and prevent edge-on view
   if (autoSpin && bikeMesh) {
-    bikeMesh.rotation.y += rotationSpeed;
+    const oscTime = Date.now() * 0.0012;
+    bikeMesh.rotation.y = Math.sin(oscTime) * 0.45; // Oscillates between -25 and +25 degrees
   }
 
   // Rotate gimbal containment rings
@@ -828,6 +835,35 @@ function animate(time) {
 }
 
 /**
+ * Dynamically updates camera distance based on screen width
+ * to keep the bike visual at a medium/suitable size on all devices.
+ */
+function updateCameraDistance() {
+  if (!camera || !controls || !container) return;
+  
+  const width = container.clientWidth;
+  let dist = 8.5; // Default desktop size
+  
+  if (width < 480) {
+    dist = 5.8; // Mobile / Android — closer so bike is readable
+  } else if (width < 768) {
+    dist = 7.0; // Tablet
+  }
+  
+  const target = controls.target;
+  const dx = camera.position.x - target.x;
+  const dz = camera.position.z - target.z;
+  const angle = Math.atan2(dx, dz);
+  
+  camera.position.x = target.x + Math.sin(angle) * dist;
+  camera.position.z = target.z + Math.cos(angle) * dist;
+  
+  controls.minDistance = dist;
+  controls.maxDistance = dist;
+  controls.update();
+}
+
+/**
  * Handles container resizing events to retain layout aspects.
  */
 function onWindowResize() {
@@ -837,6 +873,7 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
   
   renderer.setSize(container.clientWidth, container.clientHeight);
+  updateCameraDistance();
 }
 
 // Start simulation on load
