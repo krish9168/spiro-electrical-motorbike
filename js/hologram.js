@@ -175,25 +175,6 @@ function createEmitterPodium() {
   gridHelper.material.transparent = true;
   gridHelper.material.opacity = 0.45;
   hologramGroup.add(gridHelper);
-
-  // Concentric Base Rings
-  const ringGeo1 = new THREE.RingGeometry(2.2, 2.22, 64);
-  const ringGeo2 = new THREE.RingGeometry(1.6, 1.62, 64);
-  
-  const ringMat = new THREE.MeshBasicMaterial({
-    color: 0x00E5FF,
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: 0.5
-  });
-
-  outerRing = new THREE.Mesh(ringGeo1, ringMat);
-  outerRing.rotation.x = Math.PI / 2;
-  hologramGroup.add(outerRing);
-
-  innerRing = new THREE.Mesh(ringGeo2, ringMat);
-  innerRing.rotation.x = Math.PI / 2;
-  hologramGroup.add(innerRing);
 }
 
 /**
@@ -235,31 +216,7 @@ function createFloorGlow() {
  * Creates the high-tech gimbal containment rings rotating around the bike.
  */
 function createGimbalRings() {
-  const ringMat1 = new THREE.MeshBasicMaterial({
-    color: 0x0052FF,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.25,
-    side: THREE.DoubleSide
-  });
-
-  const ringMat2 = new THREE.MeshBasicMaterial({
-    color: 0x00E5FF,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.15,
-    side: THREE.DoubleSide
-  });
-
-  // Vertical stabilizers
-  const verticalRingGeo1 = new THREE.RingGeometry(2.4, 2.42, 64);
-  verticalRing1 = new THREE.Mesh(verticalRingGeo1, ringMat1);
-  hologramGroup.add(verticalRing1);
-
-  const verticalRingGeo2 = new THREE.RingGeometry(2.5, 2.52, 64);
-  verticalRing2 = new THREE.Mesh(verticalRingGeo2, ringMat2);
-  verticalRing2.rotation.y = Math.PI / 4;
-  hologramGroup.add(verticalRing2);
+  // Removed per user request: "REMOVE CIRCULES AND KEEP ONLY BIKE"
 }
 
 /**
