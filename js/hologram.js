@@ -8,7 +8,7 @@ let scene, camera, renderer, controls;
 let container, hologramGroup;
 let bikeMesh, particleSystem, lightCone, bottomGlow;
 let outerRing, innerRing, verticalRing1, verticalRing2;
-let clock = new THREE.Clock(); // Added for time-based animation
+let clock = null; // Initialized inside initHologram() after THREE.js loads
 
 // State control
 let currentModel = 'ekon';
@@ -50,6 +50,9 @@ const loadedTextures = {};
 function initHologram() {
   container = document.getElementById('hologram-scene');
   if (!container) return;
+
+  // Initialize clock since THREE is now loaded
+  clock = new THREE.Clock();
 
   // 1. Create Scene
   scene = new THREE.Scene();
