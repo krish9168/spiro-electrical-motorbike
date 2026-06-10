@@ -4,7 +4,7 @@
 */
 
 // Configuration
-const WA_NUMBER = '254700000000'; // Edit this number with country code, no +
+const WA_NUMBER = '254105305324'; // Edit this number with country code, no +
 
 /**
  * Redirects the user to WhatsApp with pre-filled contextual messages.
