@@ -8,6 +8,7 @@ let scene, camera, renderer, controls;
 let container, hologramGroup;
 let bikeMesh, particleSystem, lightCone, bottomGlow;
 let outerRing, innerRing, verticalRing1, verticalRing2;
+let clock = new THREE.Clock(); // Added for time-based animation
 
 // State control
 let currentModel = 'ekon';
@@ -54,9 +55,16 @@ function initHologram() {
   scene = new THREE.Scene();
 
   // 2. Setup Camera
+  let initialWidth = container.clientWidth || 800;
+  let initialHeight = container.clientHeight || 450;
+  let initialAspect = initialWidth / initialHeight;
+  if (isNaN(initialAspect) || !isFinite(initialAspect)) {
+    initialAspect = 16 / 9;
+  }
+
   camera = new THREE.PerspectiveCamera(
     45, 
-    container.clientWidth / container.clientHeight, 
+    initialAspect, 
     0.1, 
     100
   );
@@ -64,7 +72,7 @@ function initHologram() {
 
   // 3. Setup WebGL Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setSize(initialWidth, initialHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
   
@@ -128,6 +136,7 @@ function initHologram() {
 
   // 8. Create Holographic Base & Emitter Stage
   createEmitterPodium();
+  createFloorGlow(); // Soft cyan glow under wheels
 
   // 9. Create Cybernetic Rings
   createGimbalRings();
@@ -138,8 +147,15 @@ function initHologram() {
   // 11. Create Projector Beam Cone
   createProjectorBeam();
 
-  // 12. Handle window resize
-  window.addEventListener('resize', onWindowResize);
+  // 12. Handle window resize and layout changes via ResizeObserver
+  if (typeof ResizeObserver !== 'undefined') {
+    const resizeObserver = new ResizeObserver(() => {
+      onWindowResize();
+    });
+    resizeObserver.observe(container);
+  } else {
+    window.addEventListener('resize', onWindowResize);
+  }
 
   // Start rendering loop
   animate();
@@ -175,6 +191,41 @@ function createEmitterPodium() {
   innerRing = new THREE.Mesh(ringGeo2, ringMat);
   innerRing.rotation.x = Math.PI / 2;
   hologramGroup.add(innerRing);
+}
+
+/**
+ * Creates the soft cyan glow under the bike wheels.
+ */
+function createFloorGlow() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  
+  const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gradient.addColorStop(0, 'rgba(0, 229, 255, 0.45)');
+  gradient.addColorStop(0.3, 'rgba(0, 229, 255, 0.2)');
+  gradient.addColorStop(1, 'rgba(0, 229, 255, 0)');
+  
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 128, 128);
+  
+  const texture = new THREE.CanvasTexture(canvas);
+  
+  // Elongated glow geometry under the wheels
+  const floorGlowGeo = new THREE.PlaneGeometry(3.6, 1.2); 
+  const floorGlowMat = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+  
+  const floorGlowMesh = new THREE.Mesh(floorGlowGeo, floorGlowMat);
+  floorGlowMesh.rotation.x = -Math.PI / 2;
+  floorGlowMesh.position.set(0, 0.05, 0); // Positioned slightly above the base podium
+  hologramGroup.add(floorGlowMesh);
 }
 
 /**
@@ -230,13 +281,31 @@ function createProjectorBeam() {
   hologramGroup.add(lightCone);
 }
 
-/**
- * Gets the target scale for the bike model mesh.
- * Returns 0.7 on mobile (Android) screens, and 1.0 on desktop/tablets.
- */
 function getBikeTargetScale() {
-  const width = container ? container.clientWidth : window.innerWidth;
-  return (width < 480) ? 0.7 : 1.0;
+  if (!camera || !container) return 1.0;
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  if (!width || !height) {
+    return (window.innerWidth < 480) ? 1.55 : 2.2; // Safe fallbacks
+  }
+  const aspect = width / height;
+  const dist = (controls && controls.minDistance) ? controls.minDistance : 8.5;
+  const fovRad = (camera.fov || 45) * Math.PI / 360; // half fov in radians
+  const frustumHeight = 2 * dist * Math.tan(fovRad);
+  const frustumWidth = frustumHeight * aspect;
+  
+  // Sizing constraints:
+  // 1. Occupy 82% of viewer width (horizontal target)
+  const targetScaleWidth = (frustumWidth * 0.82) / 3.1;
+  // 2. Occupy at most 80% of viewer height (to avoid vertical cropping)
+  const targetScaleHeight = (frustumHeight * 0.80) / 1.9;
+  
+  let scale = Math.min(targetScaleWidth, targetScaleHeight);
+  
+  if (isNaN(scale) || !isFinite(scale) || scale <= 0) {
+    return (width < 480) ? 1.55 : 2.2;
+  }
+  return scale;
 }
 
 /**
@@ -254,7 +323,7 @@ function createBikeMesh(texture) {
     map: texture,
     transparent: true,
     side: THREE.DoubleSide,
-    opacity: 0.9,
+    opacity: 0.6, // Hologram opacity 60%
     depthWrite: false
   });
 
@@ -271,9 +340,6 @@ function createBikeMesh(texture) {
     .start();
 }
 
-/**
- * Creates the particle system simulating energy fields rising from the podium.
- */
 function createParticles() {
   const particleCount = 100;
   const geometry = new THREE.BufferGeometry();
@@ -281,13 +347,13 @@ function createParticles() {
   const velocities = [];
 
   for (let i = 0; i < particleCount; i++) {
-    // Distribute particles in a cylinder around the center base
-    const angle = Math.random() * Math.PI * 2;
+    // Distribute particles in a half-cylinder behind the bike plane (z < -0.1)
+    const angle = Math.PI + Math.random() * Math.PI; // Back half
     const radius = Math.random() * 2.0;
     
     const x = Math.cos(angle) * radius;
     const y = Math.random() * 3.2; // vertical spread
-    const z = Math.sin(angle) * radius;
+    const z = -Math.abs(Math.sin(angle) * radius) - 0.1;
     
     positions[i * 3] = x;
     positions[i * 3 + 1] = y;
@@ -297,8 +363,7 @@ function createParticles() {
     velocities.push({
       y: 0.01 + Math.random() * 0.015,
       driftX: (Math.random() - 0.5) * 0.005,
-      driftZ: (Math.random() - 0.5) * 0.005,
-      orbitSpeed: 0.002 + Math.random() * 0.003
+      driftZ: -Math.random() * 0.005 // always drift backwards/neutral
     });
   }
 
@@ -332,26 +397,17 @@ function updateParticles() {
   for (let i = 0; i < count; i++) {
     // Move particle upwards
     positions[i * 3 + 1] += velocities[i].y;
-    
-    // Slight drift and orbit logic
-    const x = positions[i * 3];
-    const z = positions[i * 3 + 2];
-    
-    // Rotate coordinates around Y axis slightly
-    const cosAngle = Math.cos(velocities[i].orbitSpeed);
-    const sinAngle = Math.sin(velocities[i].orbitSpeed);
-    
-    positions[i * 3] = x * cosAngle - z * sinAngle + velocities[i].driftX;
-    positions[i * 3 + 2] = x * sinAngle + z * cosAngle + velocities[i].driftZ;
+    positions[i * 3] += velocities[i].driftX;
+    positions[i * 3 + 2] += velocities[i].driftZ;
 
-    // Reset if it passes the height limits
-    if (positions[i * 3 + 1] > 3.2) {
+    // Reset if it passes the height limits, drifts forward, or drifts too wide
+    if (positions[i * 3 + 1] > 3.2 || positions[i * 3 + 2] >= -0.1 || Math.abs(positions[i * 3]) > 2.2) {
       positions[i * 3 + 1] = 0.05; // Reset back to base
       
-      const angle = Math.random() * Math.PI * 2;
+      const angle = Math.PI + Math.random() * Math.PI; // Back half only
       const radius = Math.random() * 1.8;
       positions[i * 3] = Math.cos(angle) * radius;
-      positions[i * 3 + 2] = Math.sin(angle) * radius;
+      positions[i * 3 + 2] = -Math.abs(Math.sin(angle) * radius) - 0.1;
     }
   }
 
@@ -789,10 +845,15 @@ function animate(time) {
     controls.update();
   }
 
-  // Auto-Spin rotation logic — oscillates to keep the bike visible in the middle and prevent edge-on view
-  if (autoSpin && bikeMesh) {
-    const oscTime = Date.now() * 0.0012;
-    bikeMesh.rotation.y = Math.sin(oscTime) * 0.45; // Oscillates between -25 and +25 degrees
+  // Auto-spin rotation logic — rotates continuously completing a full rotation every 8 seconds
+  const delta = clock ? clock.getDelta() : 0.016;
+  if (bikeMesh) {
+    if (autoSpin) {
+      bikeMesh.rotation.y += (2 * Math.PI / 8) * delta;
+    }
+    
+    // Slight floating animation: smooth vertical oscillation (up/down float)
+    bikeMesh.position.y = 1.45 + Math.sin(Date.now() * 0.0015) * 0.06;
   }
 
   // Rotate gimbal containment rings
@@ -855,16 +916,19 @@ function updateCameraDistance() {
   const width = container.clientWidth;
   let dist = 8.5; // Default desktop size
   
-  if (width < 480) {
+  if (width > 0 && width < 480) {
     dist = 5.8; // Mobile / Android — closer so bike is readable
-  } else if (width < 768) {
+  } else if (width > 0 && width < 768) {
     dist = 7.0; // Tablet
   }
   
   const target = controls.target;
   const dx = camera.position.x - target.x;
   const dz = camera.position.z - target.z;
-  const angle = Math.atan2(dx, dz);
+  let angle = Math.atan2(dx, dz);
+  if (isNaN(angle)) {
+    angle = 0;
+  }
   
   camera.position.x = target.x + Math.sin(angle) * dist;
   camera.position.z = target.z + Math.cos(angle) * dist;
@@ -880,10 +944,14 @@ function updateCameraDistance() {
 function onWindowResize() {
   if (!container || !camera || !renderer) return;
   
-  camera.aspect = container.clientWidth / container.clientHeight;
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  if (width <= 0 || height <= 0) return;
+  
+  camera.aspect = width / height;
   camera.updateProjectionMatrix();
   
-  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setSize(width, height);
   updateCameraDistance();
   
   if (bikeMesh) {
