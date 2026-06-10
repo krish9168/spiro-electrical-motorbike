@@ -17,9 +17,9 @@ let rotationSpeed = 0.008;
 
 // Texture assets dictionary
 const textures = {
-  ekon: 'images/m1_spiro.jpg',
-  thorn: 'images/m2_spiro.jpg',
-  kili: 'images/m3_spiro.jpg'
+  ekon: 'images/m1_spiro_nobg.png',
+  thorn: 'images/m2_spiro_nobg.png',
+  kili: 'images/m3_spiro_nobg.png'
 };
 
 // Model Theme Colors
@@ -76,8 +76,8 @@ function initHologram() {
   controls.target.set(0, 1.5, 0); // Aim at bike center
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
-  controls.minDistance = 3.5;
-  controls.maxDistance = 12;
+  controls.minDistance = 5;   // Max zoom-in — keeps full bike visible
+  controls.maxDistance = 12;  // Max zoom-out
   // Limit rotation angle so user doesn't look under the base
   controls.maxPolarAngle = Math.PI / 2 - 0.05;
   controls.minPolarAngle = 0.3; // Prevent looking straight down
@@ -535,25 +535,25 @@ function updateHUDTelemetry() {
  */
 function zoomConfig(zoomIn) {
   if (!camera || !controls) return;
-  const zoomStep = 1.0;
+  const zoomStep = 0.8;
   const target = controls.target;
   
-  // Get current distance from camera to target
+  // Get horizontal distance only (XZ plane) so Y stays fixed
   const dx = camera.position.x - target.x;
-  const dy = camera.position.y - target.y;
   const dz = camera.position.z - target.z;
-  const currentDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+  const currentHorizDist = Math.sqrt(dx * dx + dz * dz);
   
-  let newDist = zoomIn ? currentDist - zoomStep : currentDist + zoomStep;
-  newDist = Math.max(controls.minDistance, Math.min(controls.maxDistance, newDist));
+  let newHorizDist = zoomIn ? currentHorizDist - zoomStep : currentHorizDist + zoomStep;
+  // Clamp: min 4 (so bike stays fully visible), max 11
+  newHorizDist = Math.max(4, Math.min(11, newHorizDist));
   
-  // Scale the direction vector to the new distance
-  const scale = newDist / currentDist;
+  // Scale only X and Z, keep Y fixed at camera's current height
+  const scale = newHorizDist / currentHorizDist;
   
   new TWEEN.Tween(camera.position)
     .to({
       x: target.x + dx * scale,
-      y: target.y + dy * scale,
+      y: camera.position.y,  // Keep Y fixed — bike won't move up
       z: target.z + dz * scale
     }, 400)
     .easing(TWEEN.Easing.Quadratic.Out)
@@ -716,8 +716,9 @@ function setConfigColor(hexColor) {
   const b = parseInt(hexColor.slice(5, 7), 16);
   const glowColor = `rgba(${r}, ${g}, ${b}, 0.25)`;
   
-  document.documentElement.style.setProperty('--accent', hexColor);
-  document.documentElement.style.setProperty('--accent-glow', glowColor);
+  // Keep website styling single-color (do not change website colors when selecting bikes)
+  // document.documentElement.style.setProperty('--accent', hexColor);
+  // document.documentElement.style.setProperty('--accent-glow', glowColor);
 
   // Transition Three.js lights
   const targetColor = new THREE.Color(hexColor);
